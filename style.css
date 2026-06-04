@@ -5,55 +5,54 @@
 }
 
 html, body {
-    margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
-    background: #0f0c1f; /* цвет фона, совпадающий с градиентом, чтобы не было белых полос */
-    overflow-x: hidden;   /* запрет горизонтальной прокрутки */
+    margin: 0;
+    padding: 0;
+    background: #0f0c1f; /* базовый цвет, совпадающий с градиентом */
+    overflow-x: hidden;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
     background: linear-gradient(135deg, #0f0c1f 0%, #1a1535 50%, #0f0c1f 100%);
+    background-attachment: fixed; /* закрепляем градиент, чтобы при скролле не было белых полос */
     color: #ffffff;
     overflow-x: hidden;
-    min-height: 100vh;
-    height: 100%;
+    min-height: 100%;
+    height: auto;
 }
 
 .app {
     display: flex;
-    height: 100vh;
-    width: 100vw;
+    width: 100%;
+    min-height: 100vh;
     position: relative;
     overflow-x: hidden;
 }
 
 /* ===== ЛЕВАЯ ПАНЕЛЬ ===== */
 .profiles-panel {
-    background: rgba(15, 12, 31, 0.7);
+    background: rgba(15, 12, 31, 0.85);
     backdrop-filter: blur(12px);
     border-right: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     flex-direction: column;
     z-index: 10;
     overflow: hidden;
-    transition: width 0.3s ease, min-width 0.3s ease;
+    transition: width 0.3s ease;
 }
 
-/* По умолчанию на мобильных панель скрыта */
+/* На мобильных панель скрыта, появляется по кнопке */
 @media (max-width: 768px) {
     .profiles-panel {
         width: 0;
-        min-width: 0;
-        padding: 0;
-        border-right: none;
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
         z-index: 1000;
+        border-right: none;
     }
     .profiles-panel.open {
         width: 260px;
@@ -69,13 +68,12 @@ body {
     }
     .profiles-panel.hidden-panel {
         width: 0 !important;
-        min-width: 0 !important;
         padding: 0;
         border-right: none;
     }
 }
 
-/* Логотип внутри левой панели */
+/* Логотип в панели */
 .panel-logo {
     font-size: 28px;
     font-weight: 600;
@@ -125,7 +123,7 @@ body {
     padding: 0 16px 20px 20px;
 }
 
-/* Стилизованный скроллбар */
+/* Скроллбар */
 .profiles-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -266,14 +264,14 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
     position: relative;
+    background: transparent;
 }
 
-/* Кнопка-бургер */
+/* Кнопка-бургер (три полоски) */
 .toggle-panel-btn {
-    position: absolute;
+    position: fixed;
     top: 16px;
     left: 16px;
     z-index: 200;
