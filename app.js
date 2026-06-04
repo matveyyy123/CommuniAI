@@ -680,4 +680,26 @@ async function init() {
     }
 }
 
+function toggleLeftPanel() {
+    const panel = document.querySelector('.profiles-panel');
+    if (panel) {
+        panel.classList.toggle('open');
+        // Для десктопа используем hidden-panel, для мобильных open
+        if (window.innerWidth > 768) {
+            panel.classList.toggle('hidden-panel');
+        }
+    }
+}
+
+// При загрузке страницы на мобильных панель скрыта
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.innerWidth <= 768) {
+        const panel = document.querySelector('.profiles-panel');
+        if (panel) {
+            panel.classList.remove('open');
+            panel.style.width = '0';
+        }
+    }
+});
+
 init();
