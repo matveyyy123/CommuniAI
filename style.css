@@ -55,7 +55,7 @@ body {
         border-right: none;
     }
     .profiles-panel.open {
-        width: 260px;
+        width: 80%;
         padding: 0 16px 20px 20px;
         border-right: 1px solid rgba(255,255,255,0.1);
     }
@@ -64,7 +64,7 @@ body {
 /* На десктопе панель видна всегда, если нет класса hidden-panel */
 @media (min-width: 769px) {
     .profiles-panel {
-        width: 320px;
+        width: 20%;
     }
     .profiles-panel.hidden-panel {
         width: 0 !important;
@@ -363,7 +363,7 @@ body {
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 60px;
-    padding: 4px 4px 4px 16px;
+    padding: 4px 4px 4px 4px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.2s ease;
 }
