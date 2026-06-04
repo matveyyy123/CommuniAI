@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Левая панель -->
+        <aside class="profiles-panel" id="profilesPanel">
+            <div class="panel-logo">Communi</div>
+            <div class="panel-header">
+                <span>ЛЮДИ И ЗАМЕТКИ</span>
+                <button id="clearAllDataBtn" class="icon-btn clear-history" title="Очистить всю историю">🗑️</button>
+            </div>
+            <div class="profiles-list" id="profilesList">
+                <div class="empty-profiles">Нет записей</div>
+            </div>
+        </aside>
+
+        <!-- Основная область -->
+        <main class="main-content">
+            <button id="togglePanelBtn" class="toggle-panel-btn" title="Скрыть/показать левую панель">☰</button>
+            <div class="chat-area" id="chatArea">
+                <div class="chat-messages" id="chatMessages"></div>
+            </div>
+            <div class="input-area">
+                <div class="input-container">
+                    <button class="voice-btn" id="voiceBtn" title="Голосовой ввод">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2C10.9 2 10 2.9 10 4v6c0 1.1.9 2 2 2s2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                            <path d="M19 10v2c0 3.9-3.1 7-7 7s-7-3.1-7-7v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/>
+                        </svg>
+                    </button>
+                    <input type="text" id="textInput" class="text-input" placeholder="Напишите сообщение..." autocomplete="off">
+                    <button class="send-btn" id="sendBtn" title="Отправить">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="voice-status" id="voiceStatus">Нажмите для голосового ввода</div>
+            </div>
+        </main>
+
+        <div class="version-tag">v.1.0</div>
+    </div>
+
+    <!-- Модальное окно редактирования профиля -->
+    <div id="editModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Редактировать профиль</h3>
+            <div class="modal-body">
+                <label>Имя:</label>
+                <input type="text" id="editName" placeholder="Имя">
+                <label>Описание:</label>
+                <textarea id="editDesc" rows="3" placeholder="Описание человека"></textarea>
+                <label>Рейтинг (0-10 или ?):</label>
+                <input type="text" id="editRating" placeholder="например 7 или ?">
+                <label>События (по одному в строке):</label>
+                <textarea id="editEvents" rows="5" placeholder="дата: событие"></textarea>
+                <button id="saveProfileBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
