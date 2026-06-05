@@ -25,7 +25,7 @@ body {
     position: relative;
 }
 
-/* ===== ЛЕВАЯ КОЛОНКА — обычное состояние ===== */
+/* ===== ЛЕВАЯ КОЛОНКА ===== */
 .left-column {
     width: 280px;
     background: rgba(15, 12, 31, 0.85);
@@ -34,12 +34,11 @@ body {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: none;
+    transition: all 0.25s ease;
     position: relative;
     z-index: 10;
 }
 
-/* Состояние, когда нижняя часть скрыта — левая колонка убирает фон, обводку, становится невидимой */
 .left-column.collapsed {
     position: fixed;
     left: 0;
@@ -51,7 +50,6 @@ body {
     z-index: 1000;
 }
 
-/* Верхний квадрат — общие стили (всегда одинаковые) */
 .fixed-square {
     padding: 16px;
     background: rgba(15, 12, 31, 0.95);
@@ -62,11 +60,10 @@ body {
     gap: 12px;
 }
 
-/* В свёрнутом состоянии у квадрата тоже убираем фон и обводку — остаётся только текст и кнопка */
 .left-column.collapsed .fixed-square {
     background: transparent;
     border-bottom: none;
-    padding: 12px 16px;  /* чуть уменьшаем отступы для компактности */
+    padding: 12px 16px;
 }
 
 .logo {
@@ -75,7 +72,7 @@ body {
     letter-spacing: -0.5px;
     color: #ffffff;
     white-space: nowrap;
-    margin-left: 10px;  /* ← отступ, который вы можете менять */
+    margin-left: 10px;
 }
 
 .burger-btn {
@@ -92,19 +89,16 @@ body {
     justify-content: center;
     transition: 0.2s;
     flex-shrink: 0;
-    margin-left: 0;
 }
 
 .burger-btn:hover {
     background: rgba(100, 80, 200, 0.8);
 }
 
-/* В свёрнутом состоянии кнопка тоже может быть на прозрачном фоне, но оставим как есть */
 .left-column.collapsed .burger-btn {
     background: rgba(255, 255, 255, 0.15);
 }
 
-/* Скрываемая область (ЛЮДИ И ЗАМЕТКИ + мусорка + список) */
 .collapsible-area {
     display: flex;
     flex-direction: column;
@@ -116,7 +110,6 @@ body {
     display: none;
 }
 
-/* Заголовок "ЛЮДИ И ЗАМЕТКИ" и мусорка */
 .list-header {
     padding: 12px 16px;
     font-size: 11px;
@@ -156,7 +149,6 @@ body {
     background: rgba(255, 80, 80, 0.5);
 }
 
-/* Список людей */
 .people-list {
     flex: 1;
     overflow-y: auto;
@@ -177,7 +169,6 @@ body {
     border-radius: 3px;
 }
 
-/* Карточки профилей */
 .profile-card {
     background: rgba(255, 255, 255, 0.04);
     border-radius: 16px;
@@ -316,7 +307,6 @@ body {
     width: auto;
 }
 
-/* Когда левая колонка свёрнута (collapsed), правая занимает 100% ширины */
 .app:has(.left-column.collapsed) .right-column {
     width: 100%;
 }
@@ -408,7 +398,7 @@ body {
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 60px;
-    padding: 4px 4px 4px 4px;
+    padding: 4px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -452,15 +442,9 @@ body {
 }
 
 @keyframes pulseMic {
-    0% {
-        box-shadow: 0 0 0 0 rgba(255, 80, 80, 0.4);
-    }
-    50% {
-        box-shadow: 0 0 0 12px rgba(255, 80, 80, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 80, 80, 0);
-    }
+    0% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(255, 80, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); }
 }
 
 .voice-status {
@@ -470,7 +454,6 @@ body {
     margin-top: 10px;
 }
 
-/* Модальное окно */
 .modal {
     position: fixed;
     top: 0;
@@ -532,15 +515,106 @@ body {
     cursor: pointer;
 }
 
-/* Адаптация для мобильных */
+/* ===== АДАПТАЦИЯ ПОД МОБИЛЬНЫЕ ===== */
 @media (max-width: 768px) {
-    .left-column.collapsed {
-        width: auto;
+    .left-column {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        transform: translateX(0);
+        transition: transform 0.25s ease;
+        z-index: 1000;
+        width: 260px;
     }
+
+    .left-column.collapsed {
+        transform: translateX(-100%);
+        position: fixed;
+        width: 260px;
+        background: rgba(15, 12, 31, 0.95);
+        backdrop-filter: blur(12px);
+    }
+
+    .left-column.collapsed .fixed-square {
+        background: rgba(15, 12, 31, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .left-column:not(.collapsed) {
+        transform: translateX(0);
+    }
+
+    /* Кнопка-бургер всегда видна */
+    .burger-btn {
+        position: relative;
+        z-index: 1100;
+    }
+
     .right-column {
         width: 100%;
     }
+
     .message-bubble {
         max-width: 85%;
+    }
+
+    .chat-messages {
+        max-width: 100%;
+    }
+
+    .input-container {
+        margin: 0 8px;
+    }
+
+    .voice-status {
+        font-size: 10px;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .fixed-square {
+        padding: 12px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .burger-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+    }
+
+    .profile-card {
+        padding: 12px;
+    }
+
+    .profile-name {
+        font-size: 14px;
+    }
+
+    .message-bubble {
+        font-size: 13px;
+        padding: 10px 14px;
+    }
+
+    .voice-btn, .send-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .chat-area {
+        padding: 12px;
+    }
+
+    .input-area {
+        padding: 8px 12px 16px;
     }
 }

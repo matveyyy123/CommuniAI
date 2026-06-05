@@ -8,7 +8,6 @@ let userProfile = { id: 'main', name: null, description: null, timeline: [] };
 let recognition = null;
 let isListening = false;
 
-// DOM элементы
 const profilesList = document.getElementById('profilesList');
 const chatMessages = document.getElementById('chatMessages');
 const textInput = document.getElementById('textInput');
