@@ -555,10 +555,14 @@ body {
         display: none;
         align-items: center;
         padding: 12px 16px;
+        padding-top: max(12px, env(safe-area-inset-top));
         background: rgba(15, 12, 31, 0.95);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         gap: 12px;
         flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
     .app:has(.left-column.collapsed) .mobile-header {
