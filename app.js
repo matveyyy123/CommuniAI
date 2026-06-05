@@ -571,6 +571,20 @@ async function init() {
     voiceBtn.addEventListener('click', startVoiceInput);
     document.getElementById('clearAllDataBtn')?.addEventListener('click', clearAllHistory);
     document.getElementById('toggleBtn')?.addEventListener('click', toggleCollapsible);
+    
+    // Обработчик для мобильной кнопки-бургер (открывает левую колонку)
+    const mobileBurger = document.getElementById('mobileBurgerBtn');
+    if (mobileBurger) {
+        mobileBurger.addEventListener('click', () => {
+            const collapsible = document.getElementById('collapsibleArea');
+            const leftColumn = document.getElementById('leftColumn');
+            if (collapsible && leftColumn) {
+                collapsible.classList.remove('hidden');
+                leftColumn.classList.remove('collapsed');
+            }
+        });
+    }
+
     window.addEventListener('click', (e) => { if (e.target === document.getElementById('editModal')) document.getElementById('editModal').classList.add('hidden'); });
 
     if (!userProfile.name) addMessageToChat('Привет! Как тебя зовут? Напиши своё имя.', false);
