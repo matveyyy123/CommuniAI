@@ -7,136 +7,174 @@
 html, body {
     width: 100%;
     height: 100%;
-    margin: 0;
-    padding: 0;
-    background: #0f0c1f; /* базовый цвет, совпадающий с градиентом */
-    overflow-x: hidden;
+    overflow: hidden;
+    background: #0f0c1f;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
     background: linear-gradient(135deg, #0f0c1f 0%, #1a1535 50%, #0f0c1f 100%);
-    background-attachment: fixed; /* закрепляем градиент, чтобы при скролле не было белых полос */
     color: #ffffff;
-    overflow-x: hidden;
-    min-height: 100%;
-    height: auto;
 }
 
 .app {
     display: flex;
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     position: relative;
-    overflow-x: hidden;
 }
 
-/* ===== ЛЕВАЯ ПАНЕЛЬ ===== */
-.profiles-panel {
+/* ===== ЛЕВАЯ КОЛОНКА — обычное состояние ===== */
+.left-column {
+    width: 280px;
     background: rgba(15, 12, 31, 0.85);
     backdrop-filter: blur(12px);
     border-right: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
+    transition: none;
+    position: relative;
     z-index: 10;
-    overflow: hidden;
-    transition: width 0.3s ease;
 }
 
-/* На мобильных панель скрыта, появляется по кнопке */
-@media (max-width: 768px) {
-    .profiles-panel {
-        width: 0;
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        z-index: 1000;
-        border-right: none;
-    }
-    .profiles-panel.open {
-        width: 80%;
-        padding: 0 16px 20px 20px;
-        border-right: 1px solid rgba(255,255,255,0.1);
-    }
+/* Состояние, когда нижняя часть скрыта — левая колонка убирает фон, обводку, становится невидимой */
+.left-column.collapsed {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: auto;
+    background: transparent;
+    backdrop-filter: none;
+    border-right: none;
+    z-index: 1000;
 }
 
-/* На десктопе панель видна всегда, если нет класса hidden-panel */
-@media (min-width: 769px) {
-    .profiles-panel {
-        width: 20%;
-    }
-    .profiles-panel.hidden-panel {
-        width: 0 !important;
-        padding: 0;
-        border-right: none;
-    }
+/* Верхний квадрат — общие стили (всегда одинаковые) */
+.fixed-square {
+    padding: 16px;
+    background: rgba(15, 12, 31, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 12px;
 }
 
-/* Логотип в панели */
-.panel-logo {
-    font-size: 28px;
+/* В свёрнутом состоянии у квадрата тоже убираем фон и обводку — остаётся только текст и кнопка */
+.left-column.collapsed .fixed-square {
+    background: transparent;
+    border-bottom: none;
+    padding: 12px 16px;  /* чуть уменьшаем отступы для компактности */
+}
+
+.logo {
+    font-size: 22px;
     font-weight: 600;
     letter-spacing: -0.5px;
     color: #ffffff;
-    padding: 32px 24px 20px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 8px;
+    white-space: nowrap;
+    margin-left: 10px;  /* ← отступ, который вы можете менять */
 }
 
-.panel-header {
-    padding: 0 20px 20px 24px;
+.burger-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 22px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    flex-shrink: 0;
+    margin-left: 0;
+}
+
+.burger-btn:hover {
+    background: rgba(100, 80, 200, 0.8);
+}
+
+/* В свёрнутом состоянии кнопка тоже может быть на прозрачном фоне, но оставим как есть */
+.left-column.collapsed .burger-btn {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Скрываемая область (ЛЮДИ И ЗАМЕТКИ + мусорка + список) */
+.collapsible-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.collapsible-area.hidden {
+    display: none;
+}
+
+/* Заголовок "ЛЮДИ И ЗАМЕТКИ" и мусорка */
+.list-header {
+    padding: 12px 16px;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.4);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: rgba(15, 12, 31, 0.5);
+    flex-shrink: 0;
 }
 
 .icon-btn {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     font-size: 18px;
     width: 32px;
     height: 32px;
     border-radius: 8px;
     cursor: pointer;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
     transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .icon-btn:hover {
-    background: rgba(255,255,255,0.25);
+    background: rgba(255, 255, 255, 0.25);
     color: white;
 }
+
 .clear-history:hover {
-    background: rgba(255,80,80,0.5);
+    background: rgba(255, 80, 80, 0.5);
 }
 
-.profiles-list {
+/* Список людей */
+.people-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0 16px 20px 20px;
+    padding: 16px 12px 20px 16px;
 }
 
-/* Скроллбар */
-.profiles-list::-webkit-scrollbar {
+.people-list::-webkit-scrollbar {
     width: 6px;
 }
-.profiles-list::-webkit-scrollbar-track {
+
+.people-list::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 3px;
 }
-.profiles-list::-webkit-scrollbar-thumb {
+
+.people-list::-webkit-scrollbar-thumb {
     background: rgba(160, 136, 255, 0.5);
     border-radius: 3px;
-}
-.profiles-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(160, 136, 255, 0.8);
 }
 
 /* Карточки профилей */
@@ -145,14 +183,15 @@ body {
     border-radius: 16px;
     margin-bottom: 12px;
     padding: 14px;
-    transition: all 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    position: relative;
+    transition: 0.2s;
 }
+
 .profile-card:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(140, 120, 220, 0.3);
 }
+
 .profile-name {
     font-size: 16px;
     font-weight: 600;
@@ -163,17 +202,16 @@ body {
     gap: 8px;
     flex-wrap: wrap;
 }
+
 .profile-edit-btn {
     background: none;
     border: none;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     font-size: 14px;
     margin-left: auto;
 }
-.profile-edit-btn:hover {
-    color: white;
-}
+
 .rating-badge {
     display: inline-flex;
     align-items: center;
@@ -184,33 +222,36 @@ body {
     border-radius: 20px;
     background: rgba(0, 0, 0, 0.4);
 }
+
 .rating-badge.good {
     background: rgba(100, 200, 100, 0.2);
     color: #88ff88;
-    border: 1px solid rgba(100, 200, 100, 0.3);
 }
+
 .rating-badge.bad {
     background: rgba(255, 80, 80, 0.2);
     color: #ff8888;
-    border: 1px solid rgba(255, 80, 80, 0.3);
 }
+
 .rating-badge.neutral {
     background: rgba(255, 200, 80, 0.2);
     color: #ffcc66;
-    border: 1px solid rgba(255, 200, 80, 0.3);
 }
+
 .rating-badge.none {
     background: rgba(150, 150, 150, 0.15);
-    color: rgba(200, 200, 200, 0.6);
-    border: 1px solid rgba(150, 150, 150, 0.2);
+    color: #ccc;
 }
+
 .profile-general {
     background: rgba(100, 80, 200, 0.12);
     border-radius: 12px;
     padding: 10px;
     margin: 8px 0;
 }
-.general-label, .timeline-label {
+
+.general-label,
+.timeline-label {
     font-size: 9px;
     font-weight: 600;
     letter-spacing: 1px;
@@ -218,22 +259,27 @@ body {
     color: rgba(160, 136, 255, 0.6);
     margin-bottom: 6px;
 }
+
 .general-text {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.85);
     line-height: 1.4;
 }
+
 .profile-timeline {
     margin-top: 8px;
 }
+
 .timeline-event {
     margin-bottom: 10px;
     padding: 6px 0;
     border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
 }
+
 .timeline-event:last-child {
     border-bottom: none;
 }
+
 .important-event {
     background: rgba(255, 200, 100, 0.08);
     border-left: 2px solid #ffcc66;
@@ -241,64 +287,46 @@ body {
     margin-left: -8px;
     border-radius: 0 8px 8px 0;
 }
+
 .event-date {
     font-size: 9px;
     color: rgba(255, 255, 255, 0.35);
     margin-bottom: 3px;
 }
+
 .event-text {
     font-size: 11px;
     color: rgba(255, 255, 255, 0.7);
-    line-height: 1.4;
 }
+
 .empty-profiles {
     text-align: center;
     color: rgba(255, 255, 255, 0.25);
-    font-size: 13px;
     padding: 32px 0;
 }
 
-/* ===== ОСНОВНАЯ ОБЛАСТЬ ===== */
-.main-content {
+/* ===== ПРАВАЯ КОЛОНКА ===== */
+.right-column {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 100vh;
-    position: relative;
+    height: 100%;
+    overflow: hidden;
     background: transparent;
+    width: auto;
 }
 
-/* Кнопка-бургер (три полоски) */
-.toggle-panel-btn {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 200;
-    background: rgba(30, 25, 60, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.15);
-    font-size: 24px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
-}
-.toggle-panel-btn:hover {
-    background: rgba(100, 80, 200, 0.9);
-    transform: scale(1.05);
+/* Когда левая колонка свёрнута (collapsed), правая занимает 100% ширины */
+.app:has(.left-column.collapsed) .right-column {
+    width: 100%;
 }
 
 .chat-area {
     flex: 1;
     overflow-y: auto;
-    padding: 80px 16px 20px 16px;
+    padding: 16px 20px;
 }
+
 .chat-messages {
     max-width: 800px;
     margin: 0 auto;
@@ -306,6 +334,21 @@ body {
     flex-direction: column;
     gap: 16px;
 }
+
+.chat-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-area::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.chat-area::-webkit-scrollbar-thumb {
+    background: rgba(160, 136, 255, 0.5);
+    border-radius: 3px;
+}
+
 .ai-avatar {
     width: 36px;
     height: 36px;
@@ -317,6 +360,7 @@ body {
     font-size: 20px;
     flex-shrink: 0;
 }
+
 .message-bubble {
     max-width: 70%;
     padding: 12px 16px;
@@ -325,36 +369,37 @@ body {
     line-height: 1.5;
     word-wrap: break-word;
 }
+
 .user-bubble {
     background: rgba(100, 80, 200, 0.25);
     border: 1px solid rgba(140, 120, 220, 0.3);
     border-bottom-right-radius: 4px;
     margin-left: auto;
 }
+
 .ai-bubble {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-bottom-left-radius: 4px;
 }
+
 .user-message {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
 }
-.user-message .message-bubble {
-    order: 1;
-}
+
 .ai-message {
     display: flex;
     gap: 12px;
     align-items: flex-start;
 }
 
-/* Панель ввода */
 .input-area {
-    padding: 12px 16px 20px 16px;
+    padding: 12px 16px 20px;
     background: linear-gradient(to top, rgba(15, 12, 31, 0.95), transparent);
+    flex-shrink: 0;
 }
+
 .input-container {
     max-width: 800px;
     margin: 0 auto;
@@ -365,12 +410,8 @@ body {
     border-radius: 60px;
     padding: 4px 4px 4px 4px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.2s ease;
 }
-.input-container:focus-within {
-    border-color: rgba(140, 120, 220, 0.6);
-    background: rgba(255, 255, 255, 0.08);
-}
+
 .text-input {
     flex: 1;
     background: transparent;
@@ -380,10 +421,13 @@ body {
     padding: 12px 0;
     outline: none;
 }
+
 .text-input::placeholder {
     color: rgba(255, 255, 255, 0.3);
 }
-.voice-btn, .send-btn {
+
+.voice-btn,
+.send-btn {
     background: rgba(100, 80, 200, 0.2);
     border: none;
     width: 44px;
@@ -393,42 +437,37 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
     color: rgba(200, 180, 255, 0.8);
-    flex-shrink: 0;
 }
-.send-btn {
-    background: rgba(100, 80, 200, 0.4);
-}
-.voice-btn:hover, .send-btn:hover {
+
+.voice-btn:hover,
+.send-btn:hover {
     background: rgba(140, 120, 220, 0.6);
     color: white;
-    transform: scale(1.02);
 }
+
 .voice-btn.listening {
     background: rgba(255, 80, 80, 0.5);
-    color: white;
     animation: pulseMic 1.2s infinite;
 }
+
 @keyframes pulseMic {
-    0% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(255, 80, 80, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 80, 80, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 12px rgba(255, 80, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 80, 80, 0);
+    }
 }
+
 .voice-status {
     text-align: center;
     font-size: 11px;
     color: rgba(255, 255, 255, 0.3);
     margin-top: 10px;
-}
-
-.version-tag {
-    position: fixed;
-    top: 20px;
-    right: 16px;
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.25);
-    z-index: 100;
 }
 
 /* Модальное окно */
@@ -438,13 +477,17 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 2000;
 }
-.modal.hidden { display: none; }
+
+.modal.hidden {
+    display: none;
+}
+
 .modal-content {
     background: #1e1b2e;
     border-radius: 24px;
@@ -453,6 +496,7 @@ body {
     padding: 20px;
     position: relative;
 }
+
 .close-modal {
     position: absolute;
     top: 12px;
@@ -460,20 +504,23 @@ body {
     font-size: 28px;
     cursor: pointer;
 }
+
 .modal-body label {
     display: block;
     margin-top: 12px;
     font-size: 14px;
 }
-.modal-body input, .modal-body textarea {
+
+.modal-body input,
+.modal-body textarea {
     width: 100%;
     padding: 8px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border: 1px solid #555;
     border-radius: 12px;
     color: white;
-    margin-top: 4px;
 }
+
 #saveProfileBtn {
     margin-top: 20px;
     width: 100%;
@@ -485,44 +532,15 @@ body {
     cursor: pointer;
 }
 
-/* Адаптив для мобильных */
+/* Адаптация для мобильных */
 @media (max-width: 768px) {
+    .left-column.collapsed {
+        width: auto;
+    }
+    .right-column {
+        width: 100%;
+    }
     .message-bubble {
         max-width: 85%;
-    }
-    .panel-logo {
-        font-size: 22px;
-        padding: 20px 16px 16px 16px;
-    }
-    .panel-header {
-        padding: 0 16px 16px 16px;
-    }
-    .profiles-list {
-        padding: 0 12px 16px 12px;
-    }
-    .toggle-panel-btn {
-        top: 12px;
-        left: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    .chat-area {
-        padding-top: 70px;
-    }
-    .version-tag {
-        top: 16px;
-        right: 12px;
-        font-size: 9px;
-    }
-    .input-area {
-        padding: 10px 12px 16px 12px;
-    }
-    .voice-btn, .send-btn {
-        width: 40px;
-        height: 40px;
-    }
-    .input-container {
-        padding: 4px 4px 4px 12px;
     }
 }

@@ -16,7 +16,7 @@ const sendBtn = document.getElementById('sendBtn');
 const voiceBtn = document.getElementById('voiceBtn');
 const voiceStatus = document.getElementById('voiceStatus');
 
-// -------------------------- ИНДЕКСИРОВАННАЯ БАЗА ДАННЫХ (IDB) --------------------------
+// -------------------------- БАЗА ДАННЫХ (IDB) --------------------------
 function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open('CommuniDB', 3);
@@ -158,7 +158,7 @@ async function checkModel() {
     } catch { return false; }
 }
 
-// -------------------------- ОСНОВНОЙ ЗАПРОС К LLM (СУПЕР-ПРОМПТ) --------------------------
+// -------------------------- ОСНОВНОЙ ЗАПРОС К LLM --------------------------
 async function askOllama(userText) {
     const recentFacts = await loadRecentFacts(15);
     const recentChat = await loadChatHistory(10);
@@ -184,48 +184,35 @@ ${recentChat.map(m => `${m.role === 'user' ? 'ПОЛЬЗОВАТЕЛЬ' : 'ТЫ'
 ## ТВОЯ ЗАДАЧА
 
 Проанализируй новое сообщение пользователя. Ты должен:
-1. **Ответить пользователю**, дружелюбно, но без лишних приветствий (не начинай каждый ответ с "Привет!", только если пользователь сам поздоровался или это первое сообщение в сессии).
-2. **Заканчивай свой ответ вопросом**, чтобы продолжить диалог. Вопрос должен быть связан с темой сообщения.
+1. **Ответить пользователю**, дружелюбно, но без лишних приветствий.
+2. **Заканчивай свой ответ вопросом**, чтобы продолжить диалог.
 3. Извлеки информацию о людях: имена, поступки, описание, оценку.
-4. Запомни новые факты, если пользователь просит
+4. Запомни новые факты, если пользователь просит.
 
 ## ПРАВИЛА ОБНОВЛЕНИЯ ОПИСАНИЯ
-
-- Описание человека должно быть **связным** и **включать все известные факты**. Не удаляй старые факты.
-- Если действие причинило физический вред (даже случайно), максимальная оценка — 6/10.
-- Всегда указывай родственные связи (сестра, брат, мама и т.д.).
-- **НИКОГДА не создавай профиль для пользователя** (имя совпадает с именем в системе).
-
-## ПРАВИЛА ОЦЕНКИ РЕЙТИНГА
-
-- 0-3: негативный поступок (обман, воровство, боль, отравление)
-- 4-6: нейтральный или с незначительным вредом
-- 7-10: помощь, поддержка, забота (без негативных последствий)
-- "?": недостаточно информации
+- Описание человека должно быть связным и включать все известные факты.
+- Если действие причинило физический вред, максимальная оценка — 6/10.
+- Никогда не создавай профиль для пользователя.
 
 ## ФОРМАТ ВЫВОДА
-
 Сначала напиши свой обычный ответ. Затем с новой строки "###JSON", а на следующей строке — JSON.
 
 Пример:
-
 ###JSON
 {
   "people": [
     {
       "name": "Имя Фамилия",
-      "description": "Характеристика человека",
+      "description": "Характеристика",
       "event": "Конкретное действие",
       "rating": 8
     }
   ],
   "remember": ""
-}
-
-Теперь обработай новое сообщение пользователя.`;
+}`;
 
     try {
-        if (!(await isOllamaAlive())) throw new Error('Ollama не отвечает. Запустите: set OLLAMA_ORIGINS=* && ollama serve');
+        if (!(await isOllamaAlive())) throw new Error('Ollama не отвечает. Запустите: ollama serve');
         if (!(await checkModel())) throw new Error(`Модель ${OLLAMA_MODEL} не найдена. Установите: ollama pull ${OLLAMA_MODEL}`);
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 30000);
@@ -254,12 +241,9 @@ ${recentChat.map(m => `${m.role === 'user' ? 'ПОЛЬЗОВАТЕЛЬ' : 'ТЫ'
 // -------------------------- ОБНОВЛЕНИЕ ПРОФИЛЯ ЧЕЛОВЕКА --------------------------
 async function updatePerson(incoming) {
     if (!incoming.name) return;
-
-    // Если это имя пользователя — обновляем userProfile
     if (userProfile.name && incoming.name.toLowerCase() === userProfile.name.toLowerCase()) {
-        if (incoming.description && (!userProfile.description || incoming.description.length > userProfile.description.length)) {
+        if (incoming.description && (!userProfile.description || incoming.description.length > userProfile.description.length))
             userProfile.description = incoming.description;
-        }
         if (incoming.event && incoming.event.trim().length > 5) {
             const isDup = userProfile.timeline.some(e => e.text === incoming.event);
             if (!isDup) {
@@ -281,17 +265,11 @@ async function updatePerson(incoming) {
             rating: { value: null, history: [] }
         };
         allPeople.push(existing);
-    } else {
-        if (incoming.name.length > existing.name.length &&
-            incoming.name.toLowerCase().includes(existing.name.toLowerCase())) {
-            existing.name = incoming.name;
-        }
+    } else if (incoming.name.length > existing.name.length && incoming.name.toLowerCase().includes(existing.name.toLowerCase())) {
+        existing.name = incoming.name;
     }
 
-    if (incoming.description && incoming.description.trim()) {
-        existing.description = incoming.description;
-    }
-
+    if (incoming.description && incoming.description.trim()) existing.description = incoming.description;
     if (incoming.rating && incoming.rating !== '?') {
         let newVal = parseFloat(incoming.rating);
         if (!isNaN(newVal) && newVal >= 0 && newVal <= 10) {
@@ -302,7 +280,6 @@ async function updatePerson(incoming) {
             existing.rating.value = lastVals[Math.floor(lastVals.length/2)];
         }
     }
-
     if (incoming.event && incoming.event.trim().length > 5) {
         const isDuplicate = existing.timeline.some(e => e.text === incoming.event);
         if (!isDuplicate) {
@@ -314,23 +291,16 @@ async function updatePerson(incoming) {
             if (existing.timeline.length > 100) existing.timeline.shift();
         }
     }
-
     await savePeople([existing]);
 }
 
-// -------------------------- ОТРИСОВКА ЛЕВОЙ ПАНЕЛИ (ПРОФИЛИ + ПОЛЬЗОВАТЕЛЬ) --------------------------
+// -------------------------- ОТРИСОВКА ПРОФИЛЕЙ --------------------------
 async function refreshProfilesUI() {
     allPeople = await loadAllPeople();
     let html = '';
 
-    // Карточка пользователя (всегда сверху)
     const userName = userProfile.name || 'Пользователь';
-    const userGeneralHtml = userProfile.description ? `
-        <div class="profile-general">
-            <div class="general-label">📌 О ВАС</div>
-            <div class="general-text">${escapeHtml(userProfile.description)}</div>
-        </div>
-    ` : '';
+    const userGeneralHtml = userProfile.description ? `<div class="profile-general"><div class="general-label">📌 О ВАС</div><div class="general-text">${escapeHtml(userProfile.description)}</div></div>` : '';
     const userTimelineHtml = userProfile.timeline && userProfile.timeline.length > 0 ? `
         <div class="profile-timeline">
             <div class="timeline-label">📅 МОИ СОБЫТИЯ</div>
@@ -341,15 +311,8 @@ async function refreshProfilesUI() {
             }).join('')}
         </div>
     ` : '';
-    html += `
-        <div class="profile-card user-profile">
-            <div class="profile-name">👤 ${escapeHtml(userName)}</div>
-            ${userGeneralHtml}
-            ${userTimelineHtml}
-        </div>
-    `;
+    html += `<div class="profile-card user-profile"><div class="profile-name">👤 ${escapeHtml(userName)}</div>${userGeneralHtml}${userTimelineHtml}</div>`;
 
-    // Карточки других людей
     for (let p of allPeople) {
         const ratingVal = p.rating?.value;
         let ratingText = (ratingVal !== undefined && ratingVal !== null) ? `${ratingVal}/10` : '?/10';
@@ -359,17 +322,11 @@ async function refreshProfilesUI() {
             else if (ratingVal <= 3) ratingClass = 'bad';
             else ratingClass = 'neutral';
         }
-
         const timelineHtml = (p.timeline || []).slice().reverse().slice(0,10).map(e => {
             const d = new Date(e.date);
             const dateStr = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
-            const importantClass = e.important ? 'important-event' : '';
-            return `<div class="timeline-event ${importantClass}">
-                        <div class="event-date">${dateStr}</div>
-                        <div class="event-text">${escapeHtml(e.text)}</div>
-                    </div>`;
+            return `<div class="timeline-event ${e.important ? 'important-event' : ''}"><div class="event-date">${dateStr}</div><div class="event-text">${escapeHtml(e.text)}</div></div>`;
         }).join('');
-
         html += `
             <div class="profile-card" data-id="${p.id}">
                 <div class="profile-name">
@@ -378,55 +335,43 @@ async function refreshProfilesUI() {
                     <button class="profile-edit-btn" data-id="${p.id}">✏️</button>
                 </div>
                 ${p.description ? `<div class="profile-general"><div class="general-label">📌 О ПЕРСОНЕ</div><div class="general-text">${escapeHtml(p.description)}</div></div>` : ''}
-                <div class="profile-timeline">
-                    <div class="timeline-label">📅 ХРОНОЛОГИЯ</div>
-                    ${timelineHtml || 'Нет событий'}
-                </div>
+                <div class="profile-timeline"><div class="timeline-label">📅 ХРОНОЛОГИЯ</div>${timelineHtml || 'Нет событий'}</div>
             </div>
         `;
     }
-
-    if (allPeople.length === 0 && !userProfile.name) {
-        html += '<div class="empty-profiles">Нет записей</div>';
-    }
-
+    if (allPeople.length === 0 && !userProfile.name) html = '<div class="empty-profiles">Нет записей</div>';
     profilesList.innerHTML = html;
-
-    // Кнопки редактирования
     document.querySelectorAll('.profile-edit-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = btn.dataset.id;
-            openEditModal(id);
+            openEditModal(btn.dataset.id);
         });
     });
 }
 
 // -------------------------- ОЧИСТКА ВСЕХ ДАННЫХ --------------------------
 async function clearAllHistory() {
-    if (!confirm('ВНИМАНИЕ! Все люди, события, диалоги и настройки будут удалены без возможности восстановления. Продолжить?')) return;
+    if (!confirm('Удалить всех людей, события и историю чата?')) return;
     localStorage.clear();
-    try {
-        const databases = await indexedDB.databases?.() || [{ name: 'CommuniDB' }];
-        for (let dbInfo of databases) {
-            if (dbInfo.name && dbInfo.name.includes('Communi')) {
-                indexedDB.deleteDatabase(dbInfo.name);
-            }
-        }
-        indexedDB.deleteDatabase('CommuniDB');
-    } catch(e) { console.warn(e); }
+    indexedDB.deleteDatabase('CommuniDB');
     setTimeout(() => location.reload(), 200);
 }
 
-// -------------------------- ПЕРЕКЛЮЧЕНИЕ ЛЕВОЙ ПАНЕЛИ --------------------------
-function toggleLeftPanel() {
-    const panel = document.querySelector('.profiles-panel');
-    if (panel) {
-        panel.classList.toggle('hidden-panel');
+// -------------------------- ПЕРЕКЛЮЧЕНИЕ (ГЛАВНОЕ) --------------------------
+function toggleCollapsible() {
+    const collapsible = document.getElementById('collapsibleArea');
+    const leftColumn = document.getElementById('leftColumn');
+    if (collapsible) {
+        collapsible.classList.toggle('hidden');
+        if (collapsible.classList.contains('hidden')) {
+            leftColumn.classList.add('collapsed');
+        } else {
+            leftColumn.classList.remove('collapsed');
+        }
     }
 }
 
-// -------------------------- РЕДАКТИРОВАНИЕ ПРОФИЛЯ (МОДАЛЬНОЕ ОКНО) --------------------------
+// -------------------------- РЕДАКТИРОВАНИЕ ПРОФИЛЯ --------------------------
 let currentEditId = null;
 function openEditModal(id) {
     const person = allPeople.find(p => p.id === id);
@@ -444,18 +389,15 @@ function openEditModal(id) {
     document.getElementById('editEvents').value = eventsText;
     document.getElementById('editModal').classList.remove('hidden');
 }
-
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
     const person = allPeople.find(p => p.id === currentEditId);
     if (!person) return;
     person.name = document.getElementById('editName').value.trim();
     person.description = document.getElementById('editDesc').value.trim();
     let ratingRaw = document.getElementById('editRating').value.trim();
-    let ratingVal = null;
-    if (ratingRaw !== '?' && !isNaN(parseFloat(ratingRaw))) ratingVal = parseFloat(ratingRaw);
+    let ratingVal = (ratingRaw !== '?' && !isNaN(parseFloat(ratingRaw))) ? parseFloat(ratingRaw) : null;
     person.rating = { value: ratingVal, history: [{ value: ratingVal, timestamp: Date.now(), reason: 'Ручное редактирование' }] };
-    const eventsText = document.getElementById('editEvents').value;
-    const lines = eventsText.split('\n');
+    const lines = document.getElementById('editEvents').value.split('\n');
     const newTimeline = [];
     for (let line of lines) {
         if (line.trim()) {
@@ -478,11 +420,9 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', async () =>
     await refreshProfilesUI();
     document.getElementById('editModal').classList.add('hidden');
 });
-document.querySelector('.close-modal')?.addEventListener('click', () => {
-    document.getElementById('editModal').classList.add('hidden');
-});
+document.querySelector('.close-modal')?.addEventListener('click', () => document.getElementById('editModal').classList.add('hidden'));
 
-// -------------------------- ОБРАБОТКА ПОЛЬЗОВАТЕЛЬСКОГО ВВОДА --------------------------
+// -------------------------- ОБРАБОТКА ВВОДА ПОЛЬЗОВАТЕЛЯ --------------------------
 async function handleUserInput(inputText) {
     if (!inputText.trim()) return;
     addMessageToChat(inputText, true);
@@ -494,8 +434,8 @@ async function handleUserInput(inputText) {
             userProfile.name = words[0];
             await saveUser(userProfile);
             await refreshProfilesUI();
-            addMessageToChat(`Приятно познакомиться, ${userProfile.name}! Теперь рассказывай о людях и событиях.`, false);
-            await saveChatMessage('assistant', `Приятно познакомиться, ${userProfile.name}! Теперь рассказывай о людях и событиях.`);
+            addMessageToChat(`Приятно познакомиться, ${userProfile.name}! Рассказывай о людях и событиях.`, false);
+            await saveChatMessage('assistant', `Приятно познакомиться, ${userProfile.name}! Рассказывай о людях и событиях.`);
             return;
         } else {
             addMessageToChat('Напиши, пожалуйста, своё имя.', false);
@@ -508,9 +448,9 @@ async function handleUserInput(inputText) {
     try {
         const rawAnswer = await askOllama(inputText);
         let replyText = rawAnswer;
-        let jsonPart = '';
         const marker = '###JSON';
         const idx = rawAnswer.indexOf(marker);
+        let jsonPart = '';
         if (idx !== -1) {
             replyText = rawAnswer.substring(0, idx).trim();
             jsonPart = rawAnswer.substring(idx + marker.length).trim();
@@ -519,11 +459,8 @@ async function handleUserInput(inputText) {
         try {
             const start = jsonPart.indexOf('{');
             const end = jsonPart.lastIndexOf('}');
-            if (start !== -1 && end !== -1) {
-                jsonData = JSON.parse(jsonPart.substring(start, end+1));
-            }
-        } catch(e) { console.warn('JSON parse error', e); }
-
+            if (start !== -1 && end !== -1) jsonData = JSON.parse(jsonPart.substring(start, end+1));
+        } catch(e) {}
         if (jsonData) {
             if (jsonData.remember) await saveFact(jsonData.remember);
             if (jsonData.people) {
@@ -537,7 +474,6 @@ async function handleUserInput(inputText) {
     } catch (err) {
         hideLoading();
         addMessageToChat(`Ошибка: ${err.message}`, false);
-        console.error(err);
     }
 }
 
@@ -567,84 +503,59 @@ function showLoading() {
     chatMessages.appendChild(loadingDiv);
     loadingDiv.scrollIntoView({ behavior: 'smooth' });
 }
-function hideLoading() {
-    if (loadingDiv) loadingDiv.remove();
-    loadingDiv = null;
-}
+function hideLoading() { if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; } }
 
 // -------------------------- ГОЛОСОВОЙ ВВОД --------------------------
 function startVoiceInput() {
     if (isListening) { stopVoiceInput(); return; }
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-        voiceStatus.textContent = 'Голосовой ввод не поддерживается';
-        return;
-    }
+    if (!SpeechRec) { voiceStatus.textContent = 'Голосовой ввод не поддерживается'; return; }
     recognition = new SpeechRec();
     recognition.lang = 'ru-RU';
     recognition.interimResults = true;
     recognition.onstart = () => {
         isListening = true;
         voiceBtn.classList.add('listening');
-        voiceStatus.textContent = '🎤 Слушаю... (говорите)';
+        voiceStatus.textContent = '🎤 Слушаю...';
         textInput.placeholder = '🎙️ Слушаю...';
     };
     recognition.onresult = (event) => {
         let final = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+        for (let i = event.resultIndex; i < event.results.length; i++)
             if (event.results[i].isFinal) final += event.results[i][0].transcript;
-        }
         if (final) {
             textInput.value = final;
-            voiceStatus.textContent = `✅ Распознано: "${final}"`;
             stopVoiceInput();
             setTimeout(() => sendText(), 100);
         } else {
             let interim = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
+            for (let i = event.resultIndex; i < event.results.length; i++)
                 if (!event.results[i].isFinal) interim += event.results[i][0].transcript;
-            }
-            if (interim) {
-                textInput.value = interim;
-                voiceStatus.textContent = `🎤 Распознаю: ${interim}`;
-            }
+            if (interim) textInput.value = interim;
         }
     };
-    recognition.onerror = (e) => {
-        console.error(e);
-        voiceStatus.textContent = '❌ Ошибка микрофона, попробуйте ещё раз';
-        stopVoiceInput();
-    };
+    recognition.onerror = () => { voiceStatus.textContent = '❌ Ошибка микрофона'; stopVoiceInput(); };
     recognition.onend = () => stopVoiceInput();
     recognition.start();
 }
 function stopVoiceInput() {
-    if (recognition) {
-        try { recognition.stop(); } catch(e) {}
-        recognition = null;
-    }
+    if (recognition) try { recognition.stop(); } catch(e) {}
+    recognition = null;
     isListening = false;
     voiceBtn.classList.remove('listening');
     voiceStatus.textContent = 'Нажмите для голосового ввода';
     textInput.placeholder = 'Напишите сообщение...';
 }
-
-// -------------------------- ОТПРАВКА ТЕКСТА --------------------------
 function sendText() {
     const text = textInput.value.trim();
-    if (text) {
-        handleUserInput(text);
-        textInput.value = '';
-    }
+    if (text) { handleUserInput(text); textInput.value = ''; }
 }
 
 // -------------------------- ЗАГРУЗКА ИСТОРИИ ЧАТА --------------------------
 async function loadChatHistoryUI() {
     const history = await loadChatHistory(50);
     chatMessages.innerHTML = '';
-    for (let msg of history) {
-        addMessageToChat(msg.content, msg.role === 'user');
-    }
+    for (let msg of history) addMessageToChat(msg.content, msg.role === 'user');
 }
 
 // -------------------------- ИНИЦИАЛИЗАЦИЯ --------------------------
@@ -659,47 +570,12 @@ async function init() {
     sendBtn.addEventListener('click', sendText);
     textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendText(); });
     voiceBtn.addEventListener('click', startVoiceInput);
+    document.getElementById('clearAllDataBtn')?.addEventListener('click', clearAllHistory);
+    document.getElementById('toggleBtn')?.addEventListener('click', toggleCollapsible);
+    window.addEventListener('click', (e) => { if (e.target === document.getElementById('editModal')) document.getElementById('editModal').classList.add('hidden'); });
 
-    // Кнопка очистки (в левой панели)
-    const clearBtn = document.getElementById('clearAllDataBtn');
-    if (clearBtn) clearBtn.addEventListener('click', clearAllHistory);
-
-    // Кнопка бургер-меню (в правой колонке)
-    const toggleBtn = document.getElementById('togglePanelBtn');
-    if (toggleBtn) toggleBtn.addEventListener('click', toggleLeftPanel);
-
-    window.addEventListener('click', (e) => {
-        const modal = document.getElementById('editModal');
-        if (e.target === modal) modal.classList.add('hidden');
-    });
-
-    if (!userProfile.name) {
-        addMessageToChat('Привет! Как тебя зовут? Напиши своё имя. ( Это имя сохранится навсегда, поменять его можно только при удалении чата. )', false);
-    } else {
-        addMessageToChat(`С возвращением, ${userProfile.name}! Чем могу помочь?`, false);
-    }
+    if (!userProfile.name) addMessageToChat('Привет! Как тебя зовут? Напиши своё имя.', false);
+    else addMessageToChat(`С возвращением, ${userProfile.name}! Чем могу помочь?`, false);
 }
-
-function toggleLeftPanel() {
-    const panel = document.querySelector('.profiles-panel');
-    if (panel) {
-        panel.classList.toggle('open');
-        // Для десктопа используем hidden-panel, для мобильных open
-        if (window.innerWidth > 768) {
-            panel.classList.toggle('hidden-panel');
-        }
-    }
-}
-
-// При загрузке страницы на мобильных панель скрыта
-window.addEventListener('DOMContentLoaded', () => {
-    if (window.innerWidth <= 768) {
-        const panel = document.querySelector('.profiles-panel');
-        if (panel) {
-            panel.classList.remove('open');
-            panel.style.width = '0';
-        }
-    }
-});
 
 init();
